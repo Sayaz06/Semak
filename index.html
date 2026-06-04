@@ -6,105 +6,202 @@
   <title>Semak Terjemahan Al-Quran</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #f8f9fa;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #e8e8e8;
       color: #1a1a1a;
       min-height: 100vh;
-      padding: 1.5rem;
+      padding: 32px 16px;
     }
-    #app { max-width: 720px; margin: 0 auto; }
-    h2 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
-    p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
-    code { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-    textarea {
-      width: 100%; min-height: 220px; padding: 12px;
-      border: 1px solid #ddd; border-radius: 10px;
-      font-size: 14px; font-family: inherit; resize: vertical;
-      background: #fff; color: #1a1a1a; margin-bottom: 12px;
+
+    /* ── PAGE (Google Docs feel) ── */
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 2px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      padding: 56px 72px;
+      min-height: 80vh;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 400;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    .sub {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    code {
+      background: #f4f4f4;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 13px;
+      font-family: monospace;
+    }
+
+    textarea#paste-area {
+      width: 100%;
+      min-height: 260px;
+      padding: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+      color: #1a1a1a;
+      line-height: 1.7;
       outline: none;
+      margin-bottom: 16px;
     }
-    textarea:focus { border-color: #378ADD; }
-    button {
-      padding: 8px 20px; border-radius: 8px; font-size: 14px;
-      cursor: pointer; border: 1px solid #ddd;
-      background: #fff; color: #1a1a1a;
+    textarea#paste-area:focus { border-color: #1a73e8; }
+
+    .btn-primary {
+      padding: 10px 28px;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 15px;
+      cursor: pointer;
+      font-family: inherit;
     }
-    button:hover { background: #f0f0f0; }
-    #paste-screen { display: flex; flex-direction: column; }
-    #read-screen { display: none; flex-direction: column; gap: 0; }
+    .btn-primary:hover { background: #1557b0; }
+
+    .btn-ghost {
+      padding: 8px 18px;
+      background: transparent;
+      color: #555;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-ghost:hover { background: #f5f5f5; }
+
+    /* ── READ SCREEN ── */
+    #read-screen { display: none; }
+
     #topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding-bottom: 12px; border-bottom: 1px solid #e0e0e0;
-      margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    #counter { font-size: 13px; color: #666; }
-    #verse-list {
-      display: flex; flex-direction: column; gap: 8px;
-      max-height: 65vh; overflow-y: auto; padding-right: 4px;
+    #counter {
+      font-size: 15px;
+      color: #555;
+      font-weight: 400;
     }
+
+    /* ── VERSE CARDS ── */
     .verse-card {
-      padding: 14px 16px; border: 1px solid #e0e0e0;
-      border-radius: 10px; background: #fff; cursor: pointer;
-      transition: border-color 0.15s;
+      padding: 16px 20px;
+      border-left: 4px solid transparent;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 12px;
+      transition: border-color 0.15s, background 0.15s;
+      cursor: pointer;
     }
-    .verse-card:hover { border-color: #aaa; }
+    .verse-card:hover { background: #f9f9f9; }
     .verse-card.active {
-      border: 2px solid #378ADD;
-      background: #e8f3fc;
+      border-left-color: #1a73e8;
+      background: #f0f6ff;
     }
     .verse-num {
-      font-size: 11px; font-weight: 500; color: #888; margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
     }
-    .verse-card.active .verse-num { color: #185FA5; }
-    .verse-text { font-size: 15px; line-height: 1.7; color: #1a1a1a; }
+    .verse-card.active .verse-num { color: #1a73e8; }
+    .verse-text {
+      font-size: 17px;
+      line-height: 1.8;
+      color: #2c2c2c;
+      outline: none;
+    }
+    .verse-text:focus {
+      background: #fffde7;
+      border-radius: 3px;
+      padding: 2px 4px;
+      margin: -2px -4px;
+    }
+
     #hint {
-      text-align: center; font-size: 12px; color: #aaa;
-      margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
     }
     kbd {
-      background: #f0f0f0; border: 1px solid #ddd;
-      border-radius: 4px; padding: 1px 6px; font-size: 11px;
+      background: #f5f5f5;
+      border: 1px solid #ccc;
+      border-bottom-width: 2px;
+      border-radius: 3px;
+      padding: 1px 7px;
+      font-size: 12px;
+      font-family: monospace;
     }
-    #verse-list::-webkit-scrollbar { width: 5px; }
-    #verse-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
 
     @media (prefers-color-scheme: dark) {
-      body { background: #111; color: #e5e5e5; }
-      textarea { background: #1e1e1e; border-color: #333; color: #e5e5e5; }
-      button { background: #1e1e1e; border-color: #333; color: #e5e5e5; }
-      button:hover { background: #2a2a2a; }
-      .verse-card { background: #1e1e1e; border-color: #333; }
-      .verse-card.active { background: #0d2a40; border-color: #378ADD; }
+      body { background: #2c2c2c; }
+      .page { background: #1e1e1e; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+      h1 { color: #e0e0e0; }
+      .sub { color: #999; }
+      textarea#paste-area { background: #2a2a2a; border-color: #444; color: #e0e0e0; }
+      .verse-text { color: #d8d8d8; }
+      .verse-card:hover { background: #252525; }
+      .verse-card.active { background: #0d2440; border-left-color: #4a9eff; }
+      .verse-card.active .verse-num { color: #4a9eff; }
+      #counter { color: #999; }
       #topbar { border-color: #333; }
       #hint { border-color: #333; color: #555; }
-      kbd { background: #2a2a2a; border-color: #444; color: #ccc; }
-      code { background: #2a2a2a; color: #ccc; }
-      p { color: #aaa; }
+      kbd { background: #2a2a2a; border-color: #555; color: #ccc; }
+      .btn-ghost { color: #aaa; border-color: #444; }
+      .btn-ghost:hover { background: #2a2a2a; }
+      code { background: #2a2a2a; border-color: #444; color: #ccc; }
+      .verse-text:focus { background: #2a2400; }
     }
   </style>
 </head>
 <body>
-<div id="app">
+<div class="page">
 
   <div id="paste-screen">
-    <h2>Semak Terjemahan Al-Quran</h2>
-    <p>Tampal terjemahan bernombor di bawah. Format:</p>
-    <p><code>1. Segala puji bagi Allah...</code><br><br><code>2. Apa saja di antara rahmat...</code></p>
+    <h1>Semak Terjemahan Al-Quran</h1>
+    <p class="sub">
+      Tampal terjemahan bernombor. Format: <code>1. Segala puji...</code> &nbsp; kemudian baris kosong &nbsp; <code>2. Apa saja...</code>
+    </p>
     <textarea id="paste-area" placeholder="Tampal terjemahan di sini..."></textarea>
-    <div>
-      <button id="start-btn">Mula Semak</button>
-    </div>
+    <button class="btn-primary" id="start-btn">Mula Semak &rarr;</button>
   </div>
 
   <div id="read-screen">
     <div id="topbar">
-      <button id="btn-back">&#8592; Tampal semula</button>
+      <button class="btn-ghost" id="btn-back">&#8592; Tampal semula</button>
       <span id="counter">Ayat 1 / 1</span>
     </div>
     <div id="verse-list"></div>
     <div id="hint">
-      <kbd>&#8594;</kbd> Seterusnya &nbsp;&nbsp; <kbd>&#8592;</kbd> Sebelumnya
+      <kbd>&larr;</kbd> Sebelumnya &nbsp;&nbsp; <kbd>&rarr;</kbd> Seterusnya &nbsp;&nbsp;
+      Klik teks ayat untuk edit terus
     </div>
   </div>
 
@@ -138,22 +235,35 @@
       const card = document.createElement('div');
       card.className = 'verse-card' + (i === cur ? ' active' : '');
       card.id = 'v' + i;
-      card.innerHTML =
-        '<div class="verse-num">Ayat ' + v.num + '</div>' +
-        '<div class="verse-text">' + v.text.replace(/</g,'&lt;') + '</div>';
-      card.addEventListener('click', () => { cur = i; update(); });
+
+      const numEl = document.createElement('div');
+      numEl.className = 'verse-num';
+      numEl.textContent = 'Ayat ' + v.num;
+
+      const textEl = document.createElement('div');
+      textEl.className = 'verse-text';
+      textEl.contentEditable = 'true';
+      textEl.textContent = v.text;
+
+      textEl.addEventListener('input', () => { verses[i].text = textEl.textContent; });
+      textEl.addEventListener('focus', () => { cur = i; updateActive(); });
+      textEl.addEventListener('click', (e) => { e.stopPropagation(); cur = i; updateActive(); });
+
+      card.addEventListener('click', () => { cur = i; updateActive(); textEl.focus(); });
+
+      card.appendChild(numEl);
+      card.appendChild(textEl);
       list.appendChild(card);
     });
     scrollToCurrent();
   }
 
-  function update() {
+  function updateActive() {
     document.querySelectorAll('.verse-card').forEach((c, i) => {
       c.className = 'verse-card' + (i === cur ? ' active' : '');
     });
     document.getElementById('counter').textContent =
       'Ayat ' + verses[cur].num + ' / ' + verses.length;
-    scrollToCurrent();
   }
 
   function scrollToCurrent() {
@@ -161,32 +271,31 @@
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  function update() {
+    updateActive();
+    scrollToCurrent();
+  }
+
   document.getElementById('start-btn').addEventListener('click', () => {
     const text = document.getElementById('paste-area').value.trim();
     if (!text) return;
     verses = parseVerses(text);
-    if (!verses.length) {
-      alert('Tiada ayat bernombor dijumpai. Sila semak format.');
-      return;
-    }
+    if (!verses.length) { alert('Tiada ayat bernombor dijumpai. Sila semak format.'); return; }
     cur = 0;
     document.getElementById('paste-screen').style.display = 'none';
-    const rs = document.getElementById('read-screen');
-    rs.style.display = 'flex';
-    rs.style.flexDirection = 'column';
+    document.getElementById('read-screen').style.display = 'block';
     renderVerses();
-    document.getElementById('counter').textContent =
-      'Ayat ' + verses[0].num + ' / ' + verses.length;
+    update();
   });
 
   document.getElementById('btn-back').addEventListener('click', () => {
     document.getElementById('read-screen').style.display = 'none';
-    document.getElementById('paste-screen').style.display = 'flex';
-    document.getElementById('paste-screen').style.flexDirection = 'column';
+    document.getElementById('paste-screen').style.display = 'block';
   });
 
   document.addEventListener('keydown', (e) => {
     if (document.getElementById('read-screen').style.display === 'none') return;
+    if (document.activeElement && document.activeElement.contentEditable === 'true') return;
     if (e.key === 'ArrowRight') { if (cur < verses.length - 1) { cur++; update(); } }
     if (e.key === 'ArrowLeft')  { if (cur > 0) { cur--; update(); } }
   });
