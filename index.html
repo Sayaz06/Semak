@@ -287,7 +287,9 @@
     update();
   });
 
-  document.getElementById('btn-back').addEventListener('click', () => {
+document.getElementById('btn-back').addEventListener('click', () => {
+    const updatedText = verses.map(v => v.num + '. ' + v.text).join('\n\n');
+    document.getElementById('paste-area').value = updatedText;
     document.getElementById('read-screen').style.display = 'none';
     document.getElementById('paste-screen').style.display = 'block';
   });
