@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semak Terjemahan Al-Quran</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f8f9fa;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    #app { max-width: 720px; margin: 0 auto; }
+    h2 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+    p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+    code { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    textarea {
+      width: 100%; min-height: 220px; padding: 12px;
+      border: 1px solid #ddd; border-radius: 10px;
+      font-size: 14px; font-family: inherit; resize: vertical;
+      background: #fff; color: #1a1a1a; margin-bottom: 12px;
+      outline: none;
+    }
+    textarea:focus { border-color: #378ADD; }
+    button {
+      padding: 8px 20px; border-radius: 8px; font-size: 14px;
+      cursor: pointer; border: 1px solid #ddd;
+      background: #fff; color: #1a1a1a;
+    }
+    button:hover { background: #f0f0f0; }
+    #paste-screen { display: flex; flex-direction: column; }
+    #read-screen { display: none; flex-direction: column; gap: 0; }
+    #topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 12px; border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+    }
+    #counter { font-size: 13px; color: #666; }
+    #verse-list {
+      display: flex; flex-direction: column; gap: 8px;
+      max-height: 65vh; overflow-y: auto; padding-right: 4px;
+    }
+    .verse-card {
+      padding: 14px 16px; border: 1px solid #e0e0e0;
+      border-radius: 10px; background: #fff; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .verse-card:hover { border-color: #aaa; }
+    .verse-card.active {
+      border: 2px solid #378ADD;
+      background: #e8f3fc;
+    }
+    .verse-num {
+      font-size: 11px; font-weight: 500; color: #888; margin-bottom: 6px;
+    }
+    .verse-card.active .verse-num { color: #185FA5; }
+    .verse-text { font-size: 15px; line-height: 1.7; color: #1a1a1a; }
+    #hint {
+      text-align: center; font-size: 12px; color: #aaa;
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;
+    }
+    kbd {
+      background: #f0f0f0; border: 1px solid #ddd;
+      border-radius: 4px; padding: 1px 6px; font-size: 11px;
+    }
+    #verse-list::-webkit-scrollbar { width: 5px; }
+    #verse-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #111; color: #e5e5e5; }
+      textarea { background: #1e1e1e; border-color: #333; color: #e5e5e5; }
+      button { background: #1e1e1e; border-color: #333; color: #e5e5e5; }
+      button:hover { background: #2a2a2a; }
+      .verse-card { background: #1e1e1e; border-color: #333; }
+      .verse-card.active { background: #0d2a40; border-color: #378ADD; }
+      #topbar { border-color: #333; }
+      #hint { border-color: #333; color: #555; }
+      kbd { background: #2a2a2a; border-color: #444; color: #ccc; }
+      code { background: #2a2a2a; color: #ccc; }
+      p { color: #aaa; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <div id="paste-screen">
+    <h2>Semak Terjemahan Al-Quran</h2>
+    <p>Tampal terjemahan bernombor di bawah. Format:</p>
+    <p><code>1. Segala puji bagi Allah...</code><br><br><code>2. Apa saja di antara rahmat...</code></p>
+    <textarea id="paste-area" placeholder="Tampal terjemahan di sini..."></textarea>
+    <div>
+      <button id="start-btn">Mula Semak</button>
+    </div>
+  </div>
+
+  <div id="read-screen">
+    <div id="topbar">
+      <button id="btn-back">&#8592; Tampal semula</button>
+      <span id="counter">Ayat 1 / 1</span>
+    </div>
+    <div id="verse-list"></div>
+    <div id="hint">
+      <kbd>&#8594;</kbd> Seterusnya &nbsp;&nbsp; <kbd>&#8592;</kbd> Sebelumnya
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let verses = [];
+  let cur = 0;
+
+  function parseVerses(text) {
+    const blocks = text.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+    const result = [];
+    for (const block of blocks) {
+      const m = block.match(/^(\d+)[\.\)]\s*([\s\S]+)/);
+      if (m) result.push({ num: parseInt(m[1]), text: m[2].trim() });
+    }
+    if (!result.length) {
+      const lines = text.split('\n').filter(l => l.trim());
+      for (const line of lines) {
+        const m = line.match(/^(\d+)[\.\)]\s*(.+)/);
+        if (m) result.push({ num: parseInt(m[1]), text: m[2].trim() });
+      }
+    }
+    return result;
+  }
+
+  function renderVerses() {
+    const list = document.getElementById('verse-list');
+    list.innerHTML = '';
+    verses.forEach((v, i) => {
+      const card = document.createElement('div');
+      card.className = 'verse-card' + (i === cur ? ' active' : '');
+      card.id = 'v' + i;
+      card.innerHTML =
+        '<div class="verse-num">Ayat ' + v.num + '</div>' +
+        '<div class="verse-text">' + v.text.replace(/</g,'&lt;') + '</div>';
+      card.addEventListener('click', () => { cur = i; update(); });
+      list.appendChild(card);
+    });
+    scrollToCurrent();
+  }
+
+  function update() {
+    document.querySelectorAll('.verse-card').forEach((c, i) => {
+      c.className = 'verse-card' + (i === cur ? ' active' : '');
+    });
+    document.getElementById('counter').textContent =
+      'Ayat ' + verses[cur].num + ' / ' + verses.length;
+    scrollToCurrent();
+  }
+
+  function scrollToCurrent() {
+    const el = document.getElementById('v' + cur);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('start-btn').addEventListener('click', () => {
+    const text = document.getElementById('paste-area').value.trim();
+    if (!text) return;
+    verses = parseVerses(text);
+    if (!verses.length) {
+      alert('Tiada ayat bernombor dijumpai. Sila semak format.');
+      return;
+    }
+    cur = 0;
+    document.getElementById('paste-screen').style.display = 'none';
+    const rs = document.getElementById('read-screen');
+    rs.style.display = 'flex';
+    rs.style.flexDirection = 'column';
+    renderVerses();
+    document.getElementById('counter').textContent =
+      'Ayat ' + verses[0].num + ' / ' + verses.length;
+  });
+
+  document.getElementById('btn-back').addEventListener('click', () => {
+    document.getElementById('read-screen').style.display = 'none';
+    document.getElementById('paste-screen').style.display = 'flex';
+    document.getElementById('paste-screen').style.flexDirection = 'column';
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('read-screen').style.display === 'none') return;
+    if (e.key === 'ArrowRight') { if (cur < verses.length - 1) { cur++; update(); } }
+    if (e.key === 'ArrowLeft')  { if (cur > 0) { cur--; update(); } }
+  });
+</script>
+</body>
+</html>
